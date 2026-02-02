@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Valentine?</title>
+  <style>
+    :root{
+      --bg1:#0b1020;
+      --bg2:#2a0f2b;
+      --card: rgba(255,255,255,.08);
+      --card2: rgba(255,255,255,.12);
+      --text:#f6f3ff;
+      --muted: rgba(246,243,255,.72);
+      --yes1:#ff4d6d;
+      --yes2:#ff8fab;
+      --no1:#2b2f44;
+      --no2:#3b4160;
+      --ring: rgba(255, 141, 173, .45);
+      --shadow: 0 24px 70px rgba(0,0,0,.45);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color: var(--text);
+      overflow: hidden;
+      background:
+        radial-gradient(1200px 800px at 20% 20%, rgba(255,77,109,.25), transparent 55%),
+        radial-gradient(900px 700px at 80% 30%, rgba(98,182,229,.18), transparent 55%),
+        radial-gradient(900px 700px at 55% 85%, rgba(255,143,171,.20), transparent 55%),
+        linear-gradient(140deg, var(--bg1), var(--bg2));
+    }
+
+    /* Nearly full-screen working area with a small border */
+    .wrap{
+      height: 100%;
+      padding: 18px;
+      position: relative;
+    }
+
+    .card{
+      width: calc(100vw - 36px);
+      height: calc(100vh - 36px);
+      border-radius: 28px;
+      background: linear-gradient(180deg, var(--card), rgba(255,255,255,.05));
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glow{
+      position: absolute;
+      inset: -140px -140px auto auto;
+      width: 340px;
+      height: 340px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,77,109,.55), transparent 60%);
+      filter: blur(10px);
+      opacity: .75;
+      pointer-events: none;
+    }
+
+    .content{
+      position: absolute;
+      inset: 0;
+      padding: clamp(18px, 3.8vw, 40px);
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 14px;
+      min-height: 0;
+    }
+
+    h1{
+      margin: 0;
+      font-size: clamp(34px, 4.6vw, 68px);
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+      font-weight: 900;
+      text-align: center;
+      text-shadow: 0 8px 22px rgba(0,0,0,.35);
+    }
+
+    .sub{
+      margin: 0 auto;
+      max-width: 65ch;
+      text-align: center;
+      color: var(--muted);
+      font-size: clamp(14px, 1.6vw, 18px);
+    }
+
+    .arena{
+      position: relative;
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border: 1px solid rgba(255,255,255,.10);
+      overflow: hidden;
+      padding: 22px;
+      display: grid;
+      place-items: center;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .btn{
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 22px;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: .01em;
+      cursor: pointer;
+      user-select: none;
+      outline: none;
+      box-shadow: 0 12px 30px rgba(0,0,0,.28);
+      transition: transform .09s ease, box-shadow .2s ease, filter .2s ease, opacity .25s ease;
+      will-change: transform, left, top;
+    }
+
+    .btn:focus-visible{
+      box-shadow: 0 0 0 4px rgba(255,255,255,.10), 0 0 0 8px var(--ring), 0 12px 30px rgba(0,0,0,.28);
+    }
+
+    .btn-yes{
+      background: linear-gradient(135deg, var(--yes1), var(--yes2));
+      color: #27010d;
+      min-width: 150px;
+    }
+    .btn-yes:hover{ transform: translateY(-1px) scale(1.02); filter: saturate(1.08); }
+
+    .btn-row{
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 16px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      backdrop-filter: blur(6px);
+    }
+
+    .btn-no{
+      background: linear-gradient(135deg, var(--no1), var(--no2));
+      color: rgba(255,255,255,.92);
+      min-width: 150px;
+      position: relative; /* normal at load */
+      z-index: 3;
+    }
+
+    .btn-no.evasive{
+      position: absolute;
+      left: 0;
+      top: 0;
+      transform: translate(0,0);
+      transition: left .075s linear, top .075s linear, transform .12s ease, filter .2s ease;
+    }
+
+    @keyframes cornerSquish {
+      0%   { transform: scale(1) rotate(0deg); }
+      25%  { transform: scale(1.18, .82) rotate(-7deg); }
+      55%  { transform: scale(.90, 1.12) rotate(7deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+    .btn-no.squish{
+      animation: cornerSquish .34s ease-in-out;
+      filter: brightness(1.08);
+    }
+
+    .hint{
+      position: absolute;
+      bottom: 14px;
+      left: 16px;
+      right: 16px;
+      text-align: center;
+      color: rgba(246,243,255,.65);
+      font-size: 13px;
+      pointer-events: none;
+    }
+
+    /* Heart confetti canvas overlay */
+    canvas#hearts{
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .success{
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: clamp(22px, 5vw, 44px);
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: opacity .35s ease, transform .35s ease;
+    }
+
+    .success.show{
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .success-card{
+      width: min(740px, 94vw);
+      border-radius: 26px;
+      background: linear-gradient(180deg, var(--card2), rgba(255,255,255,.06));
+      border: 1px solid rgba(255,255,255,.16);
+      box-shadow: var(--shadow);
+      padding: clamp(22px, 4.6vw, 44px);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .success-card h2{
+      margin: 0 0 10px 0;
+      font-size: clamp(28px, 3.5vw, 50px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .success-card p{
+      margin: 0 auto;
+      max-width: 62ch;
+      color: rgba(246,243,255,.78);
+      font-size: clamp(15px, 1.7vw, 19px);
+      line-height: 1.55;
+    }
+
+    .sparkle{
+      position: absolute;
+      inset: -120px -120px auto auto;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,143,171,.55), transparent 60%);
+      filter: blur(12px);
+      opacity: .8;
+      pointer-events: none;
+    }
+
+    .fade-out{
+      opacity: 0;
+      transform: scale(.98);
+      pointer-events: none;
+    }
+
+    @media (max-width: 520px){
+      .wrap{ padding: 14px; }
+      .card{ width: calc(100vw - 28px); height: calc(100vh - 28px); }
+      .btn{ font-size: 17px; padding: 14px 20px; min-width: 140px; }
+      .hint{ font-size: 12.5px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="hearts" aria-hidden="true"></canvas>
+
+  <div class="wrap">
+    <div class="card" id="card">
+      <div class="glow"></div>
+
+      <div class="content" id="askScreen" aria-live="polite">
+        <h1>Saumya Awasthi - Will you be my valentine?</h1>
+        <p class="sub">Two options. One correct. One… mysteriously uncatchable.</p>
+
+        <div class="arena" id="arena">
+          <div class="btn-row" id="btnRow" aria-label="Valentine choices">
+            <button class="btn btn-yes" id="yesBtn" type="button">Yes</button>
+            <button class="btn btn-no" id="noBtn" type="button">No</button>
+          </div>
+          <div class="hint">Try the “No” button—if you can.</div>
+        </div>
+      </div>
+
+      <div class="success" id="successScreen" role="dialog" aria-modal="true" aria-label="Valentine success message" tabindex="-1">
+        <div class="success-card">
+          <div class="sparkle"></div>
+          <h2>That was the correct choice.</h2>
+          <p>
+            You just clicked <strong>Yes</strong> like it was destiny. No Manipulations.
+            I completely agree with your choice.
+          </p>
+          <p style="margin-top:14px; color: rgba(246,243,255,.70);">
+            Thank you for being the best valentine anyone can ask for.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Code Generated by Sidekick is for learning and experimentation purposes only.
+    (function () {
+      const arena = document.getElementById('arena');
+      const btnRow = document.getElementById('btnRow');
+      const noBtn  = document.getElementById('noBtn');
+      const yesBtn = document.getElementById('yesBtn');
+      const askScreen = document.getElementById('askScreen');
+      const successScreen = document.getElementById('successScreen');
+
+      const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+      const rect = (el) => el.getBoundingClientRect();
+
+      let evasiveOn = false;
+      let pos = { x: 0, y: 0 }; // arena-local (top-left)
+      let rafPending = false;
+      let lastPointer = { x: 0, y: 0 };
+      let squishTimer = null;
+
+      function getBounds(bw, bh) {
+        const cs = getComputedStyle(arena);
+        const padL = parseFloat(cs.paddingLeft)  || 0;
+        const padR = parseFloat(cs.paddingRight) || 0;
+        const padT = parseFloat(cs.paddingTop)   || 0;
+        const padB = parseFloat(cs.paddingBottom)|| 0;
+
+        const w = arena.clientWidth;
+        const h = arena.clientHeight;
+
+        const minX = padL;
+        const minY = padT;
+        const maxX = Math.max(minX, w - padR - bw);
+        const maxY = Math.max(minY, h - padB - bh);
+
+        return { minX, maxX, minY, maxY };
+      }
+
+      function pointerToArena(clientX, clientY) {
+        const a = rect(arena);
+        return { x: clientX - a.left, y: clientY - a.top };
+      }
+
+      function addSquish() {
+        noBtn.classList.remove('squish');
+        void noBtn.offsetWidth;
+        noBtn.classList.add('squish');
+        clearTimeout(squishTimer);
+        squishTimer = setTimeout(() => noBtn.classList.remove('squish'), 380);
+      }
+
+      function activateEvasiveIfNeeded() {
+        if (evasiveOn) return;
+
+        const a = rect(arena);
+        const b = rect(noBtn);
+
+        const bw = noBtn.offsetWidth;
+        const bh = noBtn.offsetHeight;
+        const bounds = getBounds(bw, bh);
+
+        pos.x = clamp(b.left - a.left, bounds.minX, bounds.maxX);
+        pos.y = clamp(b.top  - a.top,  bounds.minY, bounds.maxY);
+
+        const spacer = document.createElement('span');
+        spacer.style.display = 'inline-block';
+        spacer.style.width = bw + 'px';
+        spacer.style.height = bh + 'px';
+        spacer.setAttribute('aria-hidden', 'true');
+        spacer.style.pointerEvents = 'none';
+
+        btnRow.replaceChild(spacer, noBtn);
+
+        noBtn.classList.add('evasive');
+        noBtn.style.left = pos.x + 'px';
+        noBtn.style.top  = pos.y + 'px';
+        arena.appendChild(noBtn);
+
+        evasiveOn = true;
+      }
+
+      function teleportNearMouse(clientX, clientY) {
+        activateEvasiveIfNeeded();
+
+        const local = pointerToArena(clientX, clientY);
+
+        const bw = noBtn.offsetWidth;
+        const bh = noBtn.offsetHeight;
+        const bounds = getBounds(bw, bh);
+
+        const safeDist = 125;
+        const minR = 120, maxR = 230;
+
+        function candidate() {
+          const ang = Math.random() * Math.PI * 2;
+          const r = minR + Math.random() * (maxR - minR);
+          const cx = local.x + Math.cos(ang) * r;
+          const cy = local.y + Math.sin(ang) * r;
+
+          const x = clamp(cx - bw/2, bounds.minX, bounds.maxX);
+          const y = clamp(cy - bh/2, bounds.minY, bounds.maxY);
+
+          const centerX = x + bw/2;
+          const centerY = y + bh/2;
+          const d = Math.hypot(centerX - local.x, centerY - local.y);
+          return { x, y, d };
+        }
+
+        let best = null;
+        for (let i = 0; i < 18; i++) {
+          const c = candidate();
+          if (c.d >= safeDist) { best = c; break; }
+          if (!best || c.d > best.d) best = c;
+        }
+
+        pos.x = best.x;
+        pos.y = best.y;
+        noBtn.style.left = pos.x + 'px';
+        noBtn.style.top  = pos.y + 'px';
+
+        addSquish();
+      }
+
+      function moveAway(clientX, clientY) {
+        activateEvasiveIfNeeded();
+
+        const b = rect(noBtn);
+
+        const bw = noBtn.offsetWidth;
+        const bh = noBtn.offsetHeight;
+        const bounds = getBounds(bw, bh);
+
+        const bx = b.left + b.width / 2;
+        const by = b.top  + b.height / 2;
+
+        const dx = bx - clientX;
+        const dy = by - clientY;
+        const dist = Math.hypot(dx, dy);
+
+        const threshold = 170;
+        if (dist > threshold) return;
+
+        let ux = dx / (dist || 1);
+        let uy = dy / (dist || 1);
+
+        const closeness = clamp((threshold - dist) / threshold, 0, 1);
+
+        const base = 14;
+        const boost = 30;
+        const step = base + closeness * boost;
+
+        const wiggle = (Math.random() - 0.5) * (8 + closeness * 8);
+
+        const proposedX = pos.x + ux * step + wiggle;
+        const proposedY = pos.y + uy * step - wiggle;
+
+        const clampedX = clamp(proposedX, bounds.minX, bounds.maxX);
+        const clampedY = clamp(proposedY, bounds.minY, bounds.maxY);
+
+        const moved = (Math.abs(clampedX - pos.x) + Math.abs(clampedY - pos.y)) > 0.5;
+
+        const pinned =
+          (pos.x <= bounds.minX + 0.8 || pos.x >= bounds.maxX - 0.8 ||
+           pos.y <= bounds.minY + 0.8 || pos.y >= bounds.maxY - 0.8);
+
+        if ((!moved && dist < threshold * 0.9) || (pinned && dist < 145)) {
+          teleportNearMouse(clientX, clientY);
+          return;
+        }
+
+        pos.x = clampedX;
+        pos.y = clampedY;
+
+        noBtn.style.left = pos.x + 'px';
+        noBtn.style.top  = pos.y + 'px';
+      }
+
+      function scheduleMove(clientX, clientY) {
+        lastPointer.x = clientX;
+        lastPointer.y = clientY;
+
+        if (rafPending) return;
+        rafPending = true;
+
+        requestAnimationFrame(() => {
+          rafPending = false;
+          moveAway(lastPointer.x, lastPointer.y);
+        });
+      }
+
+      arena.addEventListener('pointermove', (e) => scheduleMove(e.clientX, e.clientY));
+      noBtn.addEventListener('pointerenter', (e) => teleportNearMouse(e.clientX, e.clientY));
+      noBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        teleportNearMouse(
+          (e.clientX || (rect(arena).left + rect(arena).width * 0.5)),
+          (e.clientY || (rect(arena).top  + rect(arena).height * 0.5))
+        );
+      });
+
+      window.addEventListener('resize', () => {
+        if (!evasiveOn) return;
+        const bw = noBtn.offsetWidth;
+        const bh = noBtn.offsetHeight;
+        const bounds = getBounds(bw, bh);
+        pos.x = clamp(pos.x, bounds.minX, bounds.maxX);
+        pos.y = clamp(pos.y, bounds.minY, bounds.maxY);
+        noBtn.style.left = pos.x + 'px';
+        noBtn.style.top  = pos.y + 'px';
+      });
+
+      // --- Heart confetti (on "Yes") ---
+      const canvas = document.getElementById('hearts');
+      const ctx = canvas.getContext('2d', { alpha: true });
+
+      let dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      let hearts = [];
+      let animating = false;
+      let lastT = 0;
+
+      const heartColors = ['#ff4d6d', '#ff8fab', '#ffd1dc', '#ffffff', '#ff2d55'];
+
+      function resizeCanvas() {
+        dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        canvas.width = Math.floor(window.innerWidth * dpr);
+        canvas.height = Math.floor(window.innerHeight * dpr);
+        canvas.style.width = window.innerWidth + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      function rand(min, max) { return min + Math.random() * (max - min); }
+
+      function drawHeart(x, y, size, rot, color, alpha) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(rot);
+        ctx.scale(size, size);
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = color;
+
+        // Classic heart path (normalized around 0,0)
+        ctx.beginPath();
+        ctx.moveTo(0, 0.35);
+        ctx.bezierCurveTo(0, 0.35, -0.55, 0.02, -0.55, -0.32);
+        ctx.bezierCurveTo(-0.55, -0.62, -0.25, -0.82, 0, -0.64);
+        ctx.bezierCurveTo(0.25, -0.82, 0.55, -0.62, 0.55, -0.32);
+        ctx.bezierCurveTo(0.55, 0.02, 0, 0.35, 0, 0.35);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function emitHearts(originX, originY, count) {
+        const spread = 2.7; // radians-ish spread
+        for (let i = 0; i < count; i++) {
+          const angle = -Math.PI / 2 + rand(-spread/2, spread/2);
+          const speed = rand(260, 520); // px/s
+          const size = rand(10, 18);
+          hearts.push({
+            x: originX + rand(-6, 6),
+            y: originY + rand(-6, 6),
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            g: rand(680, 980),          // gravity
+            drag: rand(0.985, 0.995),   // air resistance
+            rot: rand(-1.2, 1.2),
+            vr: rand(-2.6, 2.6),
+            size: size,
+            color: heartColors[(Math.random() * heartColors.length) | 0],
+            life: rand(0.9, 1.35),      // seconds
+            age: 0
+          });
+        }
+      }
+
+      function step(t) {
+        if (!animating) return;
+        const dt = Math.min(0.033, (t - lastT) / 1000 || 0.016);
+        lastT = t;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const next = [];
+        for (const h of hearts) {
+          h.age += dt;
+          if (h.age >= h.life) continue;
+
+          h.vx *= Math.pow(h.drag, dt * 60);
+          h.vy *= Math.pow(h.drag, dt * 60);
+          h.vy += h.g * dt;
+
+          h.x += h.vx * dt;
+          h.y += h.vy * dt;
+
+          h.rot += h.vr * dt;
+
+          const fade = 1 - (h.age / h.life);
+          const alpha = Math.max(0, Math.min(1, fade));
+
+          drawHeart(h.x, h.y, h.size / 24, h.rot, h.color, alpha);
+          next.push(h);
+        }
+        hearts = next;
+
+        if (hearts.length === 0) {
+          animating = false;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          return;
+        }
+        requestAnimationFrame(step);
+      }
+
+      function burstFromYesButton() {
+        const b = rect(yesBtn);
+        const x = b.left + b.width / 2;
+        const y = b.top + b.height / 2;
+
+        // A few quick bursts feels nicer than one big dump
+        emitHearts(x, y, 28);
+        setTimeout(() => emitHearts(x, y, 22), 90);
+        setTimeout(() => emitHearts(x, y, 18), 180);
+
+        if (!animating) {
+          animating = true;
+          lastT = performance.now();
+          requestAnimationFrame(step);
+        }
+      }
+
+      // Yes -> hearts + romantic reveal
+      yesBtn.addEventListener('click', () => {
+        burstFromYesButton();
+
+        askScreen.classList.add('fade-out');
+        setTimeout(() => {
+          askScreen.style.display = 'none';
+          successScreen.classList.add('show');
+          successScreen.focus();
+        }, 220);
+      });
+    })();
+  </script>
+</body>
+</html>
+
