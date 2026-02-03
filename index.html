@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Valentine ?</title>
+  <title>Valentine?</title>
   <style>
     :root{
       --bg1:#0b1020;
@@ -269,7 +269,7 @@
       <div class="glow"></div>
 
       <div class="content" id="askScreen" aria-live="polite">
-        <h1>Saumya Awasthi - Will you be my valentine?</h1>
+        <h1>Baby Boo - Will you be my valentine?</h1>
         <p class="sub">Two options. One correct. One… mysteriously uncatchable.</p>
 
         <div class="arena" id="arena">
@@ -277,14 +277,14 @@
             <button class="btn btn-yes" id="yesBtn" type="button">Yes</button>
             <button class="btn btn-no" id="noBtn" type="button">No</button>
           </div>
-          <div class="hint">Try the “No” button—if you can.</div>
+          <div class="hint">Try the “No” button — if you can.</div>
         </div>
       </div>
 
       <div class="success" id="successScreen" role="dialog" aria-modal="true" aria-label="Valentine success message" tabindex="-1">
         <div class="success-card">
           <div class="sparkle"></div>
-          <h2>That was the correct choice.</h2>
+          <h2>You're my Valentine!!!.</h2>
           <p>
             You just clicked <strong>Yes</strong> like it was destiny. No Manipulations.
             I completely agree with your choice.
@@ -554,23 +554,23 @@
       }
 
       function emitHearts(originX, originY, count) {
-        const spread = 2.7; // radians-ish spread
+        const spread = 12.7; // radians-ish spread
         for (let i = 0; i < count; i++) {
           const angle = -Math.PI / 2 + rand(-spread/2, spread/2);
-          const speed = rand(260, 520); // px/s
-          const size = rand(10, 18);
+          const speed = rand(160, 680); // px/s
+          const size = rand(100, 200);
           hearts.push({
             x: originX + rand(-6, 6),
             y: originY + rand(-6, 6),
             vx: Math.cos(angle) * speed,
             vy: Math.sin(angle) * speed,
-            g: rand(680, 980),          // gravity
-            drag: rand(0.985, 0.995),   // air resistance
+            g: rand(280, 580),          // gravity
+            drag: rand(0.945, 0.995),   // air resistance
             rot: rand(-1.2, 1.2),
             vr: rand(-2.6, 2.6),
             size: size,
             color: heartColors[(Math.random() * heartColors.length) | 0],
-            life: rand(0.9, 1.35),      // seconds
+            life: rand(2.9, 5.35),      // seconds
             age: 0
           });
         }
@@ -622,6 +622,8 @@
         emitHearts(x, y, 28);
         setTimeout(() => emitHearts(x, y, 22), 90);
         setTimeout(() => emitHearts(x, y, 18), 180);
+		setTimeout(() => emitHearts(x, y, 18), 270);
+		setTimeout(() => emitHearts(x, y, 22), 360);
 
         if (!animating) {
           animating = true;
@@ -645,5 +647,3 @@
   </script>
 </body>
 </html>
-
-
